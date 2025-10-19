@@ -6,7 +6,8 @@ import feedparser
 from playwright.sync_api import sync_playwright
 import time
 
-# Optional: Playwright import only if available
+# scrappes un site pour y récupérer les données dont on a besoin
+
 try:
     from playwright.sync_api import sync_playwright
     PLAYWRIGHT_AVAILABLE = True
@@ -154,13 +155,25 @@ def get_article_text(url, page):
         return None
 
 
-def scrape_artnet_science_tech(limit=None):
-    """Scrape Artnet Science & Technology → retourne une liste d’articles complets"""
-    rss_url = "https://news.artnet.com/art-world/science-technology/feed"
-    articles_data = []
-
+def scrape_site(url: str, source: str, limit=None):
+    """
+    Scrape un site ou flux RSS et retourne une liste d’articles complets.
+    - url peut être une page d'accueil ou un flux RSS
+    - source = nom du site (ex: 'Artnet', 'ArtNews')
+    """
     from playwright.sync_api import sync_playwright
-    articles = get_articles_from_rss(rss_url)
+
+    # essaie de récupérer les articles via RSS ou fallback
+    if url.endswith("/feed") or url.endswith(".xml"):
+        articles = get_articles_from_rss(url)
+    else:
+        articles = fetch_source(url)
+
+    if not articles:
+        print(f"❌ Aucun article trouvé sur {source}")
+        return []
+
+    articles_data = []
 
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
@@ -171,16 +184,14 @@ def scrape_artnet_science_tech(limit=None):
         for art in articles:
             if limit and count >= limit:
                 break
-
             text = get_article_text(art["url"], page)
             if not text:
                 continue
-
             articles_data.append({
-                "title": art["title"],
-                "url": art["url"],
-                "date": art["date"],
-                "source": "Artnet",
+                "title": art.get("title", ""),
+                "url": art.get("url", ""),
+                "date": art.get("date", ""),
+                "source": source,
                 "content": text
             })
             count += 1

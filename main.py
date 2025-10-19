@@ -1,50 +1,82 @@
-import json
-from datetime import date, datetime
+from scrap import scrape_site
+from utils_io import save_json
+from utils_clean import normalize_articles
+from datetime import date
 from pathlib import Path
-from scrap import scrape_artnet_science_tech
+import json
+
+# --- Liste des sites à scraper ---
+SITES = [
+    ("https://news.artnet.com/art-world/science-technology/feed", "Artnet"),
+    ("https://www.artnews.com/c/art-news/news/feed/", "ArtNews"),
+    ("https://techcrunch.com/category/artificial-intelligence/", "TechCrunch"),
+    ("https://fr.artprice.com/artprice-news","Artprice"),
+    ("https://fr.artprice.com/artmarketinsight","ArtPrice ArtMarketInsight"),
+    ("https://fr.cointelegraph.com/tags/nft","Cointelegraph NFT"),
+    ("https://fr.cointelegraph.com/tags/ai","Cointelegraph AI")
+]
 
 
-def save_to_json(data, base_dir: str = "data/raw") -> str:
-    """
-    Crée un sous-dossier daté (ex: data/raw/17-10-2025)
-    et enregistre les données dans un fichier JSON horodaté.
-    Retourne le chemin du fichier créé.
-    """
-    # Dossier du jour au format DD-MM-YYYY
-    day_folder = Path(base_dir) / date.today().strftime("%d-%m-%Y")
-    day_folder.mkdir(parents=True, exist_ok=True)
+def canonical_url(u: str) -> str:
+    """Mini normalisation locale (sans dépendance)"""
+    if not u: return ""
+    u = u.strip()
+    if u.endswith("/"): u = u[:-1]
+    return u.lower()
 
-    # Nom de fichier horodaté pour éviter les écrasements
-    ts = datetime.now().strftime("%Hh%Mmin%Ss")
-    filename = day_folder / f"artnet_{ts}.json"
+def load_processed_urls(base_dir="data/processed") -> set[str]:
+    """Lit toutes les URLs déjà traitées dans processed/**/articles.json"""
+    seen = set()
+    root = Path(base_dir)
+    if not root.exists():
+        return seen
+    for f in root.glob("**/articles.json"):
+        try:
+            data = json.loads(f.read_text(encoding="utf-8"))
+            for it in data or []:
+                cu = canonical_url((it or {}).get("url", ""))
+                if cu:
+                    seen.add(cu)
+        except Exception:
+            continue
+    return seen
 
-    with open(filename, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+print("🚀 Lancement du scraping multi-sources...\n")
 
-    return str(filename)
+# 0) URLs déjà traitées
+already_done = load_processed_urls()
+print(f"🧠 URLs déjà traitées trouvées : {len(already_done)}\n")
 
-
-def main() -> None:
-    print("🚀 Lancement du scraping Artnet (Science & Tech)...")
-
+# 1) Scrape tout (on ne modifie pas scrap.py)
+all_articles = []
+for url, src in SITES:
+    print(f"📰 Scraping {src} ...")
     try:
-        articles = scrape_artnet_science_tech(limit=5)
+        arts = scrape_site(url, source=src, limit=5)
+        all_articles += arts
+        print(f"✅ {len(arts)} articles récupérés depuis {src}\n")
     except Exception as e:
-        print(f"❌ Erreur pendant le scraping : {e}")
-        return
+        print(f"⚠️ Erreur sur {src} : {e}\n")
 
-    nb = len(articles) if isinstance(articles, list) else 0
-    print(f"✅ {nb} articles récupérés.")
-    for art in articles or []:
-        title = (art or {}).get("title", "—")
-        print(f"- {title}")
+# 2) Filtrer ce qui est déjà traité (post-filtre ultra simple)
+new_articles = []
+for a in all_articles:
+    cu = canonical_url(a.get("url", ""))
+    if cu and cu not in already_done:
+        new_articles.append(a)
 
-    try:
-        filepath = save_to_json(articles or [])
-        print(f"💾 Données sauvegardées dans {filepath}")
-    except Exception as e:
-        print(f"❌ Erreur lors de la sauvegarde JSON : {e}")
+print(f"🆕 Nouveaux articles après filtre : {len(new_articles)}")
 
+# 3) Sauvegarde brute
+save_json(new_articles)
 
-if __name__ == "__main__":
-    main()
+# 4) Nettoyage et sauvegarde "processed"
+cleaned = normalize_articles(new_articles)
+processed_dir = Path("data/processed") / date.today().strftime("%d-%m-%Y")
+processed_dir.mkdir(parents=True, exist_ok=True)
+processed_path = processed_dir / "articles.json"
+with open(processed_path, "w", encoding="utf-8") as f:
+    json.dump(cleaned, f, ensure_ascii=False, indent=2)
+
+print(f"✅ Nettoyage terminé → {processed_path}")
+print(f"🧾 Total final (nouveaux uniques) : {len(cleaned)}")
