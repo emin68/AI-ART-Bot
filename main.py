@@ -9,11 +9,17 @@ import json
 SITES = [
     ("https://news.artnet.com/art-world/science-technology/feed", "Artnet"),
     ("https://www.artnews.com/c/art-news/news/feed/", "ArtNews"),
+    ("https://news.artnet.com/market","Artnet market"),
+    ("https://news.artnet.com/multimedia","Artnet multimedia"),
     ("https://techcrunch.com/category/artificial-intelligence/", "TechCrunch"),
     ("https://fr.artprice.com/artprice-news","Artprice"),
     ("https://fr.artprice.com/artmarketinsight","ArtPrice ArtMarketInsight"),
     ("https://fr.cointelegraph.com/tags/nft","Cointelegraph NFT"),
-    ("https://fr.cointelegraph.com/tags/ai","Cointelegraph AI")
+    ("https://fr.cointelegraph.com/tags/ai","Cointelegraph AI"),
+    ("https://news.artnet.com/multimedia","Dezeen Technology"),
+    ("https://www.fastcompany.com/technology","Fastcompany Tech"),
+    ("https://www.engadget.com/ai/","Engadget AI"),
+    ("https://www.engadget.com/science/robotics/","Engadget robotics")
 ]
 
 
