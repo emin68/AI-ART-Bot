@@ -9,6 +9,8 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from time import sleep
 from openai import OpenAI
+from utils_env import load_env, get_env_var
+
 
 # ====== CONFIG ======
 MODEL = "gpt-4o-mini"
@@ -16,7 +18,11 @@ PROCESSED_DIR = Path("data/processed")
 TREATED_DIR = Path("data/treated")
 TREATED_DIR.mkdir(parents=True, exist_ok=True)
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# 🔹 Charger les variables d'environnement (.env)
+load_env()
+# 🔹 Initialiser le client OpenAI
+client = OpenAI(api_key=get_env_var("OPENAI_API_KEY"))
+print("🔐 Clé OpenAI chargée depuis .env")
 
 # ====== UTILS ======
 def extract_first_json_block(text: str) -> Optional[str]:
@@ -65,7 +71,8 @@ def build_prompt(article: Dict[str, Any]) -> str:
 
     return f"""
 You are an assistant specialized in summarizing English news articles about AI, art, and technology.
-Do not invent or add facts that are not explicitly in the article.
+Do not invent or add facts that are not explicitly in the article. 
+If the text is in another language, translate it correctly in English.
 
 Summarize the following article in two or three short paragraphs.
 Keep it factual, concise, and neutral (journalistic tone).
