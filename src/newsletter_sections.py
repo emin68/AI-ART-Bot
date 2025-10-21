@@ -9,7 +9,6 @@ from openai import OpenAI
 from src.utils.utils_env import load_env, get_env_var
 
 TREATED_DIR = Path("data/treated")
-OUT_HTML = Path("newsletter.html")
 DEFAULT_MODEL = "gpt-4o-mini"
 
 # ---------- Load today's summaries
@@ -209,9 +208,15 @@ def render_fallback(today_str: str, buckets: Dict[str, List[Dict[str, Any]]]) ->
 
 # ---------- Save
 
-def save_html(html: str, out_path: Path = OUT_HTML) -> None:
-    out_path.write_text(html, encoding="utf-8")
-    print(f"✅ Newsletter generated → {out_path.resolve()}")
+def save_html(html: str) -> None:
+    output_dir = Path("data/newsletters")
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    ts = datetime.now().strftime("%Y-%m-%d_%Hh%M")
+    final_path = output_dir / f"newsletter_{ts}.html"
+
+    final_path.write_text(html, encoding="utf-8")
+    print(f"✅ Newsletter generated → {final_path.resolve()}")
 
 # ---------- Main
 

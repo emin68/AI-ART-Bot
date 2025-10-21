@@ -52,15 +52,42 @@ def extract_first_json_block(text: str) -> Optional[str]:
 
 
 def load_articles(processed_date: str) -> list:
-    """Charge les articles nettoyés du jour."""
+    """Charge les articles nettoyés du jour, sinon prend le dernier dossier non vide."""
     fpath = PROCESSED_DIR / processed_date / "articles.json"
+
+    # 🔁 Si pas de fichier aujourd'hui → chercher le dernier existant
     if not fpath.exists():
-        raise FileNotFoundError(f"Fichier introuvable: {fpath}")
+        print(f"⚠️ Aucun fichier pour aujourd’hui ({processed_date}). Recherche du dernier dossier...")
+        dirs = sorted([d for d in PROCESSED_DIR.iterdir() if d.is_dir()], reverse=True)
+        for d in dirs:
+            candidate = d / "articles.json"
+            if candidate.exists():
+                fpath = candidate
+                print(f"📦 Utilisation du dernier fichier disponible : {candidate}")
+                break
+        else:
+            raise FileNotFoundError("Aucun dossier 'processed' trouvé avec articles.json")
+
+    # 🔎 Charger et vérifier
     with open(fpath, "r", encoding="utf-8") as f:
         articles = json.load(f)
-    if not isinstance(articles, list) or not articles:
-        raise ValueError(f"Aucun article valide dans: {fpath}")
+
+    if not isinstance(articles, list) or len(articles) == 0:
+        print(f"⚠️ Fichier vide : {fpath}. Recherche d’un autre dossier...")
+        dirs = sorted([d for d in PROCESSED_DIR.iterdir() if d.is_dir()], reverse=True)
+        for d in dirs:
+            if d.name == processed_date:
+                continue
+            candidate = d / "articles.json"
+            if candidate.exists():
+                data = json.loads(candidate.read_text())
+                if isinstance(data, list) and len(data) > 0:
+                    print(f"✅ Articles trouvés dans {candidate}")
+                    return data
+        raise ValueError(f"Aucun article valide trouvé ni pour {processed_date}, ni avant.")
+
     return articles
+
 
 
 def build_prompt(article: Dict[str, Any]) -> str:

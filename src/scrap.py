@@ -1,13 +1,16 @@
-import os, time, logging
+import os, time, logging, random
 from urllib.parse import urljoin
 import requests
 from bs4 import BeautifulSoup
 import feedparser
 from playwright.sync_api import sync_playwright
-import time
 
 # scrappes un site pour y récupérer les données dont on a besoin
 
+def sleep_jitter(min_s=0.8, max_s=1.8):
+    """Pause aléatoire pour éviter les rafales suspectes."""
+    time.sleep(random.uniform(min_s, max_s))
+    
 try:
     from playwright.sync_api import sync_playwright
     PLAYWRIGHT_AVAILABLE = True
@@ -54,6 +57,7 @@ def try_requests(url):
     """Requête simple + parse HTML. Retourne raw html ou None si bloqué."""
     logging.info("Try requests GET: %s", url)
     try:
+        sleep_jitter() #anti rafale
         r = requests.get(url, headers=HEADERS, timeout=TIMEOUT, proxies=PROXIES)
         r.raise_for_status()
         text = r.text
@@ -74,6 +78,7 @@ def try_playwright(url):
     logging.info("Try Playwright: %s", url)
     try:
         with sync_playwright() as p:
+            sleep_jitter()
             browser = p.chromium.launch(headless=True)
             ctx = browser.new_context(user_agent=HEADERS["User-Agent"])
             page = ctx.new_page()
@@ -139,6 +144,7 @@ def get_articles_from_rss(rss_url):
 def get_article_text(url, page):
     """Extrait le texte complet d’un article (navigateur déjà ouvert)"""
     try:
+        sleep_jitter() #pause avant d'ouvrir la page
         page.goto(url, timeout=20000)
         page.wait_for_timeout(2000)
         html = page.content()
@@ -195,7 +201,7 @@ def scrape_site(url: str, source: str, limit=None):
                 "content": text
             })
             count += 1
-
+            sleep_jitter(0.6,1.2) #mini pause entre deux articles
         browser.close()
 
     return articles_data

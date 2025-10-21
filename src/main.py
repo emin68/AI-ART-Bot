@@ -1,63 +1,77 @@
+import argparse, os, time, random, json
+from datetime import date
+from pathlib import Path
+from urllib.parse import urlparse, urlunparse, parse_qsl, urlencode
 from src.scrap import scrape_site
 from src.utils.utils_io import save_json
 from src.utils.utils_clean import normalize_articles
-from datetime import date
-from pathlib import Path
-import json
 from src.traitement import main as traitement_main
 from src.newsletter_sections import main as newsletter_main
 from src.envoi import main as envoi_main
-import argparse
+
 
 # --- Liste des sites à scraper ---
 SITES = [
     ("https://news.artnet.com/art-world/science-technology/feed", "Artnet"),
     ("https://www.artnews.com/c/art-news/news/feed/", "ArtNews"),
-    ("https://news.artnet.com/market","Artnet market"),
-    ("https://news.artnet.com/multimedia","Artnet multimedia"),
+    ("https://news.artnet.com/market", "Artnet market"),
+    ("https://news.artnet.com/multimedia", "Artnet multimedia"),
     ("https://techcrunch.com/category/artificial-intelligence/", "TechCrunch"),
-    ("https://fr.artprice.com/artprice-news","Artprice"),
-    ("https://fr.artprice.com/artmarketinsight","ArtPrice ArtMarketInsight"),
-    ("https://fr.cointelegraph.com/tags/nft","Cointelegraph NFT"),
-    ("https://fr.cointelegraph.com/tags/ai","Cointelegraph AI"),
-    ("https://news.artnet.com/multimedia","Dezeen Technology"),
-    ("https://www.fastcompany.com/technology","Fastcompany Tech"),
-    ("https://www.engadget.com/ai/","Engadget AI"),
-    ("https://www.engadget.com/science/robotics/","Engadget robotics")
+    ("https://fr.artprice.com/artprice-news", "Artprice"),
+    ("https://fr.artprice.com/artmarketinsight", "ArtPrice ArtMarketInsight"),
+    ("https://fr.cointelegraph.com/tags/nft", "Cointelegraph NFT"),
+    ("https://fr.cointelegraph.com/tags/ai", "Cointelegraph AI"),
+    ("https://news.artnet.com/multimedia", "Dezeen Technology"),
+    ("https://www.fastcompany.com/technology", "Fastcompany Tech"),
+    ("https://www.engadget.com/ai/", "Engadget AI"),
+    ("https://www.engadget.com/science/robotics/", "Engadget robotics"),
 ]
 
 
+# --- Gestion du cache ---
+CACHE_FILE = Path("data/cache/seen_urls.txt")
+CACHE_FILE.parent.mkdir(parents=True, exist_ok=True)
+
+def load_seen_urls():
+    if CACHE_FILE.exists():
+        with open(CACHE_FILE, "r", encoding="utf-8") as f:
+            return set(line.strip() for line in f if line.strip())
+    return set()
+
+def update_seen_cache(urls):
+    with open(CACHE_FILE, "a", encoding="utf-8") as f:
+        for u in urls:
+            f.write(u + "\n")
+
 def canonical_url(u: str) -> str:
-    """Mini normalisation locale (sans dépendance)"""
-    if not u: return ""
+    """Nettoie les URLs (enlève tracking, fragments, normalise)"""
+    if not u:
+        return ""
     u = u.strip()
-    if u.endswith("/"): u = u[:-1]
-    return u.lower()
+    p = urlparse(u)
+    path = p.path[:-1] if p.path.endswith("/") and p.path != "/" else p.path
+    blacklist = {"utm_source","utm_medium","utm_campaign","utm_term","utm_content",
+                 "gclid","fbclid","ref","mc_cid","mc_eid"}
+    q = [(k, v) for k, v in parse_qsl(p.query, keep_blank_values=True) if k.lower() not in blacklist]
+    canon = urlunparse((
+        p.scheme.lower(),
+        p.netloc.lower(),
+        path,
+        "",  # params
+        urlencode(q, doseq=True),
+        ""   # fragment
+    ))
+    return canon
 
-def load_processed_urls(base_dir="data/processed") -> set[str]:
-    """Lit toutes les URLs déjà traitées dans processed/**/articles.json"""
-    seen = set()
-    root = Path(base_dir)
-    if not root.exists():
-        return seen
-    for f in root.glob("**/articles.json"):
-        try:
-            data = json.loads(f.read_text(encoding="utf-8"))
-            for it in data or []:
-                cu = canonical_url((it or {}).get("url", ""))
-                if cu:
-                    seen.add(cu)
-        except Exception:
-            continue
-    return seen
 
+# --- Début du pipeline ---
 print("🚀 Lancement du scraping multi-sources...\n")
 
-# 0) URLs déjà traitées
-already_done = load_processed_urls()
-print(f"🧠 URLs déjà traitées trouvées : {len(already_done)}\n")
+# 0️⃣ URLs déjà traitées
+already_done = load_seen_urls()
+print(f"🧠 URLs déjà traitées trouvées dans le cache : {len(already_done)}\n")
 
-# 1) Scrape tout (on ne modifie pas scrap.py)
+# 1️⃣ Scraping des sources
 all_articles = []
 for url, src in SITES:
     print(f"📰 Scraping {src} ...")
@@ -65,10 +79,11 @@ for url, src in SITES:
         arts = scrape_site(url, source=src, limit=5)
         all_articles += arts
         print(f"✅ {len(arts)} articles récupérés depuis {src}\n")
+        time.sleep(random.uniform(1.5, 2.5))
     except Exception as e:
         print(f"⚠️ Erreur sur {src} : {e}\n")
 
-# 2) Filtrer ce qui est déjà traité (post-filtre ultra simple)
+# 2️⃣ Filtrer les articles déjà connus
 new_articles = []
 for a in all_articles:
     cu = canonical_url(a.get("url", ""))
@@ -77,30 +92,39 @@ for a in all_articles:
 
 print(f"🆕 Nouveaux articles après filtre : {len(new_articles)}")
 
-# 3) Sauvegarde brute
+# 3️⃣ Mettre à jour le cache
+if new_articles:
+    update_seen_cache([canonical_url(a["url"]) for a in new_articles])
+    print(f"🧩 Cache mis à jour avec {len(new_articles)} nouvelles URLs.\n")
+else:
+    print("😴 Aucun nouvel article à ajouter au cache.\n")
+
+# 4️⃣ Sauvegarde brute
 save_json(new_articles)
 
-# 4) Nettoyage et sauvegarde "processed"
+# 5️⃣ Nettoyage + sauvegarde
 cleaned = normalize_articles(new_articles)
 if len(cleaned) == 0:
-    print("😴 Aucun nouvel article aujourd’hui. Rien à traiter ni à envoyer.")
-    exit(0)
+    print("⚠️ Aucun nouvel article aujourd'hui. Utilisation des derniers articles disponibles.")
+
 processed_dir = Path("data/processed") / date.today().strftime("%d-%m-%Y")
 processed_dir.mkdir(parents=True, exist_ok=True)
 processed_path = processed_dir / "articles.json"
+
 with open(processed_path, "w", encoding="utf-8") as f:
     json.dump(cleaned, f, ensure_ascii=False, indent=2)
 
 print(f"✅ Nettoyage terminé → {processed_path}")
 print(f"🧾 Total final (nouveaux uniques) : {len(cleaned)}")
 
+# 6️⃣ Étapes IA & envoi
 print("\n🧠 Étape suivante : génération des résumés...")
 traitement_main()
 
 print("\n📰 Étape suivante : création de la newsletter...")
 newsletter_main()
 
-print("\n✅ Pipeline complet terminé ! Newsletter prête dans newsletter.html")
+print("\n✅ Pipeline complet terminé ! Newsletter enregistrée dans data/newsletters/")
 
 if os.getenv("SEND_EMAIL", "true").lower() == "true":
     print("\n📧 Début de l'envoi")
