@@ -6,6 +6,8 @@ from pathlib import Path
 import json
 from src.traitement import main as traitement_main
 from src.newsletter_sections import main as newsletter_main
+from src.envoi import main as envoi_main
+import argparse
 
 # --- Liste des sites à scraper ---
 SITES = [
@@ -80,6 +82,9 @@ save_json(new_articles)
 
 # 4) Nettoyage et sauvegarde "processed"
 cleaned = normalize_articles(new_articles)
+if len(cleaned) == 0:
+    print("😴 Aucun nouvel article aujourd’hui. Rien à traiter ni à envoyer.")
+    exit(0)
 processed_dir = Path("data/processed") / date.today().strftime("%d-%m-%Y")
 processed_dir.mkdir(parents=True, exist_ok=True)
 processed_path = processed_dir / "articles.json"
@@ -96,3 +101,10 @@ print("\n📰 Étape suivante : création de la newsletter...")
 newsletter_main()
 
 print("\n✅ Pipeline complet terminé ! Newsletter prête dans newsletter.html")
+
+if os.getenv("SEND_EMAIL", "true").lower() == "true":
+    print("\n📧 Début de l'envoi")
+    envoi_main()
+    print("\n✅ Mail envoyé")
+else:
+    print("\n✉️ Envoi désactivé (SEND_EMAIL=false)")
