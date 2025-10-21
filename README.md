@@ -115,12 +115,12 @@ python -m src.newsletter_sections
 ```
 
 ## 📅 Typical Weekly Workflow
-Step	Description	Output
-1️⃣ Scraping	Fetches fresh articles from art & tech feeds	data/raw/
-2️⃣ Processing	Cleans, filters, removes duplicates	data/processed/
-3️⃣ Summarization	Creates GPT-based summaries	data/treated/
-4️⃣ Newsletter	Builds an HTML digest	newsletter.html
-5️⃣ Send	Email to recipients 
+Step	            Description	                                    Output  
+1️⃣ Scraping	    Fetches fresh articles from art & tech feeds	data/raw/    
+2️⃣ Processing	    Cleans, filters, removes duplicates	            data/processed/    
+3️⃣ Summarization	Creates GPT-based summaries	                    data/treated/    
+4️⃣ Newsletter	    Builds an HTML digest	                        newsletter.html    
+5️⃣ Send	        Email to recipients 
 
 ## 👤 Author
 
