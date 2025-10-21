@@ -90,11 +90,12 @@ python -m src.main
 
 - HTML newsletter generation
 
+- Sending mail
+
 ### The output will appear as:
 
-✅ Newsletter generated → newsletter.html
+✅ Newsletter generated → newsletter_yyyy-mm-dd.html
 
-2️⃣ (Optional) Run specific steps
 
 ### If you want to test each phase individually:
 
@@ -109,6 +110,10 @@ python -m src.traitement
 ## Newsletter generation only
 ```bash
 python -m src.newsletter_sections
+```
+## Sending mail only
+```bash
+python -m src.envoi
 ```
 
 ## 📅 Typical Weekly Workflow

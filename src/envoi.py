@@ -13,7 +13,12 @@ from src.utils.utils_env import load_env, get_env_var
 from pathlib import Path
 
 NEWSLETTER_DIR = Path("data/newsletters")
-NEWSLETTER_FILE = max(NEWSLETTER_DIR.glob("newsletter_*.html"), key=lambda f: f.stat().st_mtime, default=None)
+
+def latest_newsletter() -> Path | None:
+    files = list(NEWSLETTER_DIR.glob("newsletter_*.html"))
+    if not files:
+        return None
+    return max(files, key=lambda f: f.stat().st_mtime)
 
 def html_to_text(html: str) -> str:
     """Convertit le HTML en texte brut simplifié (pour clients mail texte)."""
@@ -73,15 +78,18 @@ def main():
     # Vérifications
     if not sender_email or not recipients or not smtp_user or not smtp_pass:
         raise RuntimeError("⚠️ Configuration SMTP ou emails incomplète dans le .env")
-    if not NEWSLETTER_FILE or not NEWSLETTER_FILE.exists():
-        raise FileNotFoundError("⚠️ Newsletter introuvable dans data/newsletters/.")
+    
+    nl = latest_newsletter()
+    if not nl:
+        raise FileNotFoundError("⚠️ No newsletter found in data/newsletters/.")
+    print(f"📄 Using newsletter: {nl.name}")
 
+    html = nl.read_text(encoding="utf-8")
+    
     # 🔹 Lecture du HTML
-    html = NEWSLETTER_FILE.read_text(encoding="utf-8")
     today = date.today().strftime("%d-%m-%Y")
     subject = f"{newsletter_title} — {today}"
 
-    print(f"📄 Newsletter trouvée : {NEWSLETTER_FILE.name}")
     print(f"📬 Envoi de la newsletter '{subject}' à {len(recipients)} destinataires...\n")
 
     for recipient in recipients:
