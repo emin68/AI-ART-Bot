@@ -16,28 +16,25 @@ It merges AI-driven text synthesis with curated web scraping to create an elegan
 
 ## 🏗️ Project Architecture
 ```text
-BotAIART/
-│
+Bot AI ART/
 ├── data/
-│   ├── raw/                # Raw articles (scraped)
-│   ├── processed/          # Cleaned & normalized articles
-│   └── treated/            # Summaries & final newsletter data
-│
+│   ├── raw/             # raw scraped articles (by date)
+│   ├── processed/       # cleaned and normalized articles
+│   ├── treated/         # AI-generated summaries (via GPT)
+│   ├── newsletters/     # final HTML newsletter files
+│   └── logs/            # error and scraping logs
 ├── src/
-│   ├── main.py                     # Main orchestrator (runs full pipeline)
-│   ├── scrap.py                    # Web scraping logic
-│   ├── traitement.py               # Summarization pipeline (GPT)
-│   ├── newsletter_sections.py      # Newsletter synthesis (editorial HTML)
-│   ├── envoi.py                    # (Future) email sending logic
+│   ├── main.py          # main pipeline (scraping → summarization → newsletter → email)
+│   ├── scrap.py         # RSS/HTML scraping with random delays
+│   ├── traitement.py    # generates summaries using GPT-4o-mini
+│   ├── newsletter_sections.py  # builds the final magazine-style HTML
+│   ├── envoi.py         # sends the generated newsletter via email
 │   └── utils/
-│       ├── utils_env.py            # Environment variable loader
-│       ├── utils_io.py             # JSON I/O helpers
-│       ├── utils_clean.py          # Cleaning & normalization tools
-│       └── __init__.py
-│
-├── venv/                 # Virtual environment (excluded from git)
-├── README.md
-└── requirements.txt
+│       ├── utils_io.py
+│       ├── utils_env.py
+│       └── utils_clean.py
+└── .env                 # configuration file (API key, SMTP credentials, recipients, etc.)
+
 ```
 
 ## ⚙️ Technologies Used
