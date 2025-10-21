@@ -6,7 +6,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
 from openai import OpenAI
-from utils_env import load_env, get_env_var
+from src.utils.utils_env import load_env, get_env_var
 
 TREATED_DIR = Path("data/treated")
 OUT_HTML = Path("newsletter.html")

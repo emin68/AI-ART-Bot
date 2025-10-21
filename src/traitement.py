@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from time import sleep
 from openai import OpenAI
-from utils_env import load_env, get_env_var
+from src.utils.utils_env import load_env, get_env_var
 
 
 # ====== CONFIG ======

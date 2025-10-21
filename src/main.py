@@ -1,9 +1,11 @@
-from scrap import scrape_site
-from utils_io import save_json
-from utils_clean import normalize_articles
+from src.scrap import scrape_site
+from src.utils.utils_io import save_json
+from src.utils.utils_clean import normalize_articles
 from datetime import date
 from pathlib import Path
 import json
+from src.traitement import main as traitement_main
+from src.newsletter_sections import main as newsletter_main
 
 # --- Liste des sites à scraper ---
 SITES = [
@@ -86,3 +88,11 @@ with open(processed_path, "w", encoding="utf-8") as f:
 
 print(f"✅ Nettoyage terminé → {processed_path}")
 print(f"🧾 Total final (nouveaux uniques) : {len(cleaned)}")
+
+print("\n🧠 Étape suivante : génération des résumés...")
+traitement_main()
+
+print("\n📰 Étape suivante : création de la newsletter...")
+newsletter_main()
+
+print("\n✅ Pipeline complet terminé ! Newsletter prête dans newsletter.html")
