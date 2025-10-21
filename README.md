@@ -42,16 +42,17 @@ BotAIART/
 
 ## ⚙️ Technologies Used
 
-Category	Technology
-Language	Python 3.10+
-Scraping	requests, feedparser, BeautifulSoup4, lxml
-AI Summarization	OpenAI GPT-4o-mini
-Automation	pathlib, datetime, json
-HTML Generation	Inline CSS + Python string templates
-Environment Management	python-dotenv
-Virtual Environment	venv
-Future Add-ons	Email sending via SMTP or Gmail API, CRON scheduling, Notion/Drive archiving
-📦 Installation
+Category	Technology  
+Language	Python 3.10+  
+Scraping	requests, feedparser, BeautifulSoup4, lxml  
+AI Summarization	OpenAI GPT-4o-mini  
+Automation	pathlib, datetime, json  
+HTML Generation	Inline CSS + Python string templates  
+Environment Management	python-dotenv  
+Virtual Environment	venv  
+Future Add-ons	Email sending via SMTP or Gmail API, CRON scheduling, Notion/Drive archiving  
+
+## 📦 Installation
 
 ### Clone the repo and create your environment:
 ```bash
@@ -123,7 +124,7 @@ Step	Description	Output
 
 ## 👤 Author
 
-Emin Goktekin
-Founder of Bot AI ART
-📧 emin.gktkn@gmail.com
-🤖 “Bridging creativity and intelligence.”
+Emin Goktekin  
+Founder of Bot AI ART  
+📧 emin.gktkn@gmail.com  
+🤖 “Bridging creativity and intelligence.”  
