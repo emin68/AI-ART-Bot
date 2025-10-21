@@ -70,7 +70,7 @@ OPENAI_API_KEY=sk-xxxxxx
 OPENAI_MODEL=gpt-4o-mini
 ```
 
-# Future use (email sending)
+## Future use (email sending)
 ```bash
 EMAIL_FROM=you@example.com
 EMAIL_TO=client@example.com
