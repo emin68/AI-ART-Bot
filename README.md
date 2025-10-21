@@ -7,12 +7,12 @@ It merges AI-driven text synthesis with curated web scraping to create an elegan
 
 ## 🧩 Features
 
-✅ Multi-source scraping (Artnet, ArtNews, CoinTelegraph, TechCrunch, Engadget, etc.)
-✅ Automatic data cleaning and deduplication
-✅ Smart summarization using OpenAI GPT models
-✅ Section-based synthesis (NFTs, Auctions, AI, Cloud, etc.)
-✅ Fully formatted HTML newsletter (mobile-friendly)
-✅ Ready for future automation (email sending, scheduling, archiving)
+✅ Multi-source scraping (Artnet, ArtNews, CoinTelegraph, TechCrunch, Engadget, etc.)  
+✅ Automatic data cleaning and deduplication  
+✅ Smart summarization using OpenAI GPT models  
+✅ Section-based synthesis (NFTs, Auctions, AI, Cloud, etc.)  
+✅ Fully formatted HTML newsletter (mobile-friendly)  
+✅ Ready for future automation (email sending, scheduling, archiving)  
 
 ## 🏗️ Project Architecture
 ```text
@@ -113,7 +113,7 @@ python -m src.traitement
 python -m src.newsletter_sections
 ```
 
-📅 Typical Weekly Workflow
+## 📅 Typical Weekly Workflow
 Step	Description	Output
 1️⃣ Scraping	Fetches fresh articles from art & tech feeds	data/raw/
 2️⃣ Processing	Cleans, filters, removes duplicates	data/processed/
@@ -121,10 +121,9 @@ Step	Description	Output
 4️⃣ Newsletter	Builds an HTML digest	newsletter.html
 5️⃣ Send	Email to recipients 
 
-👤 Author
+## 👤 Author
 
 Emin Goktekin
 Founder of Bot AI ART
 📧 emin.gktkn@gmail.com
-
 🤖 “Bridging creativity and intelligence.”
