@@ -85,7 +85,7 @@ def system_prompt() -> str:
         "Prioritize synthesis and signal over enumerating articles."
     )
 
-def user_prompt(json_payload: str) -> str:
+def user_prompt(json_payload: str, today_str: str, now: str) -> str:
     return f"""
 You will receive JSON with themed sections and a handful of articles per section.
 
@@ -111,12 +111,9 @@ STRUCTURE:
      - 2–5 compact paragraphs that synthesize developments and add context.
      - Include 1–2 short key figures or quotes if available (for realism).
   4) If a "Stats & Analytics" section exists, display 3–5 concise bullets below it.
-  5) Footer: - Do NOT create your own footer. Use this exact footer content:
-  “— Edited and curated by Emin Goktekin ✍️ (Founder of Bot AI ART — bridging creativity and intelligence.)”
-  Include the email: emin.gktkn@gmail.com and a short unsubscribe link.
-
+  
 DESIGN:
-- Clean, elegant, modern magazine lookn use warm color (a little bit of pink too).
+-- Clean, elegant, modern magazine look. Use warm color (a little bit of pink too).
 - Use a max width around 720px, line-height 1.6.
 - Subtle color accents (#0b66c3 or muted blue-gray), separators between sections.
 - Section titles larger and bold with a color bar or underline.
@@ -126,85 +123,100 @@ OUTPUT:
 Return ONLY the final HTML (no markdown, no code fences).
 Ensure it's valid HTML5 and ready to send as email.
 
-JSON INPUT:
-{json_payload}
-""".strip()
-
-
-# ---------- Fallback HTML (minimal synthesis-like)
-
-def render_fallback(today_str: str, buckets: Dict[str, List[Dict[str, Any]]]) -> str:
-    def esc(s: str) -> str:
-        return (s or "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-
-    sections_html = []
-    for name, items in buckets.items():
-        if not items:
-            continue
-        picks = items[:3]
-        sentences = []
-        for it in picks:
-            t = esc(it.get("title", ""))
-            s = esc(it.get("source", ""))
-            u = it.get("url", "")
-            sentences.append(f'<a href="{u}" style="color:#0b66c3;text-decoration:none;">{t}</a> ({s})')
-        body = " • ".join(sentences)
-        sections_html.append(f"""
-          <section style="margin:32px 0;">
-            <h2 style="margin:0 0 10px;padding-left:10px;border-left:6px solid #0b66c3;
-                       font-size:20px;color:#0f172a;">{esc(name)}</h2>
-            <p style="margin:8px 0;color:#2b2b2b;line-height:1.6;">
-              Highlights this week: {body}.
-            </p>
-            <hr style="border:none;border-top:1px solid #eee;margin:20px 0;">
-          </section>
-        """)
-
-    now = datetime.now().strftime("%b %d, %Y")
-    return f"""
-<!doctype html>
-<html>
+This is the example of HTML you have to use:
+<!DOCTYPE html>
+<html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>Art × AI Weekly — {today_str}</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+<title>Art × AI Weekly — {today_str}</title>
 </head>
-<body style="margin:0;background:#f6f8fb;">
-  <div style="max-width:720px;margin:0 auto;background:#ffffff;
-              border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,0.06);padding:32px;">
-    <header style="background:#0b66c3;color:white;padding:14px 20px;
-                   border-radius:8px 8px 0 0;margin:-32px -32px 24px -32px;">
-      <h1 style="margin:0;font-size:26px;">Art × AI Weekly Digest</h1>
-      <div style="font-size:14px;opacity:0.9;">Issue date: {now}</div>
+<body style="margin:0;background-color:#fff7fa;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#333;">
+  <div style="max-width:680px;margin:40px auto;background:#ffffff;border-radius:10px;
+              box-shadow:0 4px 20px rgba(0,0,0,0.06);padding:40px;border:1px solid #ffe6f0;">
+              
+    <!-- Header -->
+    <header style="margin-bottom:34px;">
+    <div style="height:6px;width:100%;
+                background:linear-gradient(90deg,#e89cae 0%,#0b66c3 100%);
+                border-radius:6px;"></div>
+
+    <div style="text-align:center;padding-top:18px;">
+        <span style="display:inline-block;font-size:12px;color:#555;background:#f0f4ff;
+                    border:1px solid #e3e9ff;border-radius:999px;padding:6px 10px;">
+        Issue date: {now}
+        </span>
+
+        <h1 style="margin:12px 0 6px 0;font-size:28px;color:#111;font-weight:800;letter-spacing:.2px;">
+        🎨 Art × AI Weekly Digest
+        </h1>
+
+        <p style="color:#666;font-size:15px;margin:0;">
+        A weekly curation of what’s shaping creativity and intelligence. </p>
+    </div>
     </header>
 
-    <p style="margin:0 0 18px;color:#2b2b2b;font-size:15px;">
-      ⚡ Quick fallback edition — A concise snapshot of this week's AI × Art highlights.
+
+    <!-- Intro -->
+    <section style="margin:26px 0;">
+    <div style="background:#fff4f7;border:1px solid #ffe0ea;color:#333;
+                padding:14px 16px;border-radius:10px;line-height:1.6;">
+        Welcome to this week’s edition — a concise look at the intersection of
+        <strong>art, artificial intelligence, and technology</strong>. Below are the highlights
+        and stories that defined the week.
+    </div>
+    </section>
+
+
+    <!-- Sections -->
+    <!-- Replace this area with your synthesized sections based on this section code-->
+    <section style="margin:40px 0;">
+    <h2 style="background:linear-gradient(90deg,#e89cae 0%,#0b66c3 100%);
+           color:#fff;padding:10px 14px;border-radius:8px;
+           font-size:18px;font-weight:700;margin:0 0 16px 0;">
+        <span style="display:inline-block;width:6px;height:28px;border-radius:4px;
+               background:linear-gradient(180deg,#e89cae 0%,#0b66c3 100%);"></span>
+        🔗 Example Section Title
+    </h2>
+
+    <p style="font-size:15px;line-height:1.7;color:#333;margin:0;">
+        Example content for this section. The paragraphs should summarize the key
+        insights and trends in a concise and analytical way.
     </p>
 
-    {''.join(sections_html)}
+    <p style="font-size:15px;line-height:1.7;color:#333;margin-top:10px;">
+        Include up to two inline links like
+        <a href="https://example.com" style="color:#0b66c3;text-decoration:none;">
+        this one
+        </a>
+        to reference sources or examples.
+    </p>
+    </section>
+    <div style="height:1px;margin:26px 0;
+            background:linear-gradient(90deg,rgba(232,154,174,.35),rgba(11,102,195,.35));"></div>
 
-    <footer style="border-top:1px solid #eef1f5;margin-top:30px;padding-top:18px;
-               color:#6c7a89;font-size:13px;line-height:1.7;">
-        <p style="margin-bottom:10px;">
-            — Edited and curated by <b>Emin Goktekin</b> ✍️<br>
-            <em>Founder of Bot AI ART — bridging creativity and intelligence.</em>
-        </p>
-        <p style="margin-top:8px;">
-            📬 Contact: <a href="mailto:emin.gktkn@gmail.com" style="color:#0b66c3;text-decoration:none;">
-            emin.gktkn@gmail.com</a><br>
-            💌 Forward this newsletter to a friend interested in Art & Technology.
-        </p>
-        <p style="margin-top:12px;font-size:12px;">
-            <a href="#" style="color:#0b66c3;text-decoration:none;">Unsubscribe</a> • 
-            <a href="#" style="color:#0b66c3;text-decoration:none;">View in browser</a>
-        </p>
+    <!-- Footer -->
+    <footer style="border-top:1px solid #eee;margin-top:50px;padding-top:25px;text-align:center;color:#888;font-size:13px;line-height:1.6;">
+      <p style="margin:6px 0;">
+        — Edited and curated by <b>Emin Goktekin</b> ✍️<br>
+        <em>Founder of Bot AI ART — bridging creativity and intelligence.</em>
+      </p>
+      <p style="margin:8px 0;">
+        📬 <a href="mailto:emin.gktkn@gmail.com" style="color:#0b66c3;text-decoration:none;">emin.gktkn@gmail.com</a>
+      </p>
+      <p style="margin:12px 0;font-size:12px;">
+        <a href="#" style="color:#0b66c3;text-decoration:none;">Unsubscribe</a> • 
+        <a href="#" style="color:#0b66c3;text-decoration:none;">View in browser</a>
+      </p>
     </footer>
+
   </div>
 </body>
 </html>
-""".strip()
 
+JSON INPUT:
+{json_payload}
+""".strip()
 
 # ---------- Save
 
@@ -231,6 +243,8 @@ def main():
     buckets = bucketize(items)
 
     payload = build_llm_payload(today_str, buckets)
+    now = datetime.now().strftime("%B %d, %Y")  # ← ajoute cette ligne
+
     client = OpenAI(api_key=api_key)
 
     try:
@@ -239,7 +253,7 @@ def main():
             temperature=0.5,
             messages=[
                 {"role": "system", "content": system_prompt()},
-                {"role": "user", "content": user_prompt(payload)},
+                {"role": "user", "content": user_prompt(payload, today_str, now)},  # ← et passe today_str + now
             ],
         )
         html = (resp.choices[0].message.content or "").strip()
